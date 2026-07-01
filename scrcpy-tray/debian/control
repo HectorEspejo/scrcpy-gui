@@ -1,0 +1,29 @@
+Source: scrcpy-tray
+Section: utils
+Priority: optional
+Maintainer: Hector Espejo <hectorespejogomez@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.6.2
+Homepage: https://github.com/HectorEspejo/scrcpy-gui
+Rules-Requires-Root: no
+
+Package: scrcpy-tray
+Architecture: all
+Depends: ${misc:Depends},
+         python3 (>= 3.11),
+         python3-pyside6.qtcore,
+         python3-pyside6.qtgui,
+         python3-pyside6.qtwidgets,
+         python3-pyside6.qtnetwork,
+         python3-tomli-w,
+         scrcpy,
+         adb
+Recommends: wmctrl
+Description: System-tray launcher for scrcpy (KDE/Plasma friendly)
+ scrcpy-tray puts a persistent icon in the system tray from which you can
+ launch scrcpy for any connected Android device, apply presets (fullscreen,
+ no-audio, size, bitrate, recording…), connect over Wi-Fi and stop mirroring.
+ .
+ It is built on Qt's QSystemTrayIcon, which uses the StatusNotifierItem D-Bus
+ protocol, so it integrates natively with KDE Plasma on both X11 and Wayland.
+ Connected devices are detected in real time via the adb track-devices stream.

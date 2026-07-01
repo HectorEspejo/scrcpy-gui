@@ -1,0 +1,7 @@
+scrcpy-tray (0.1.0) unstable; urgency=medium
+
+  * Initial release: system-tray launcher for scrcpy, tuned for KDE Plasma.
+    Device hotplug via adb track-devices, launch presets, Wi-Fi connect,
+    notifications and autostart.
+
+ -- Hector Espejo <hectorespejogomez@gmail.com>  Wed, 01 Jul 2026 12:00:00 +0000

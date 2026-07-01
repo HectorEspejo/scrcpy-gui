@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+.venv*/
+/build/
+/dist/
+/debian/scrcpy-tray/
+/debian/.debhelper/
+/debian/files
+/debian/*.substvars
+/debian/*.debhelper.log
+*.deb
+.pytest_cache/

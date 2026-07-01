@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=scrcpy tray
+GenericName=Android Remote Control
+Comment=Launch scrcpy from the system tray
+Exec=scrcpy-tray
+Icon=scrcpy-tray
+Terminal=false
+Categories=Utility;RemoteAccess;
+Keywords=android;scrcpy;mirror;adb;phone;
+StartupNotify=false
+X-GNOME-UsesNotifications=true

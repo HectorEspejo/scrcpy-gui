@@ -1,0 +1,4 @@
+#!/bin/sh
+# Thin launcher for the installed scrcpy-tray package. @LIBDIR@ is substituted at
+# install time by the Makefile. Runs against the system python3 + PySide6.
+exec python3 -c "import sys; sys.path.insert(0, '@LIBDIR@'); from scrcpy_tray.app import main; sys.exit(main())" "$@"

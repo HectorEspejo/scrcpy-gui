@@ -1,0 +1,38 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scrcpy-tray"
+version = "0.1.0"
+description = "System-tray launcher for scrcpy, tuned for KDE Plasma (Ubuntu/Debian/Linux)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "Apache-2.0" }
+authors = [{ name = "Hector Espejo" }]
+keywords = ["scrcpy", "android", "kde", "tray", "systemtray", "statusnotifieritem"]
+dependencies = [
+    "PySide6>=6.6",
+    # tomllib is stdlib since 3.11 (read); tomli-w is only needed to write config.
+    "tomli-w>=1.0",
+]
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+# gui-scripts creates an entry point with no attached console window.
+[project.gui-scripts]
+scrcpy-tray = "scrcpy_tray.app:main"
+
+[project.urls]
+Homepage = "https://github.com/HectorEspejo/scrcpy-gui"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
