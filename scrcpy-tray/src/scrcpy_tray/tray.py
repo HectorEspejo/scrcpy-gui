@@ -6,12 +6,13 @@ import os
 from datetime import datetime
 
 from PySide6.QtCore import QProcess
-from PySide6.QtGui import QAction, QActionGroup, QCursor, QIcon
-from PySide6.QtWidgets import QFileDialog, QInputDialog, QMenu, QSystemTrayIcon
+from PySide6.QtGui import QActionGroup, QCursor, QGuiApplication, QIcon
+from PySide6.QtWidgets import QFileDialog, QMenu, QSystemTrayIcon
 
 from . import DISPLAY_NAME, autostart
 from .adb import AdbClient
 from .device import Device
+from .dialogs import WirelessDialog
 from .launcher import ScrcpyLauncher
 from .notify import Notifier
 from .paths import asset_path
@@ -57,6 +58,7 @@ class TrayIcon(QSystemTrayIcon):
         self._notifier = notifier
         self._on_quit = on_quit
         self._devices: list[Device] = []
+        self._wireless_win: WirelessDialog | None = None
 
         self._menu = QMenu()
         self._menu.aboutToShow.connect(self._rebuild)
@@ -122,8 +124,8 @@ class TrayIcon(QSystemTrayIcon):
         m.addMenu(self._build_presets_menu())
         m.addSeparator()
 
-        wifi = m.addAction("Wireless connect (TCP/IP)…")
-        wifi.triggered.connect(self._wireless_dialog)
+        wifi = m.addAction("Wireless connect / pair (TCP/IP)…")
+        wifi.triggered.connect(self._open_wireless)
         wifi.setEnabled(self._adb.available)
         refresh = m.addAction("Refresh devices")
         refresh.triggered.connect(self._adb.list_devices)
@@ -232,12 +234,12 @@ class TrayIcon(QSystemTrayIcon):
         # Best-effort raise; Wayland restricts activating external windows.
         QProcess.startDetached("wmctrl", ["-a", f"scrcpy — {device.label}"])
 
-    def _wireless_dialog(self) -> None:
-        text, ok = QInputDialog.getText(
-            None, "Wireless connect", "Device address (ip:port):", text="192.168.1.:5555"
-        )
-        if ok and text.strip():
-            self._adb.connect_wireless(text.strip())
+    def _open_wireless(self) -> None:
+        if self._wireless_win is None:
+            self._wireless_win = WirelessDialog(self._adb)
+        self._wireless_win.show()
+        self._wireless_win.raise_()
+        self._wireless_win.activateWindow()
 
     def _toggle_autostart(self, checked: bool) -> None:
         autostart.set_enabled(bool(checked))
@@ -250,7 +252,10 @@ class TrayIcon(QSystemTrayIcon):
         ]
         if len(idle) == 1:
             self._launch(idle[0])
-        else:
+        elif QGuiApplication.platformName().startswith("xcb"):
+            # A parentless popup at the cursor works on X11. On Wayland the
+            # compositor rejects it ("Failed to create grabbing popup"), so
+            # there we rely on the native right-click SNI menu instead.
             self._menu.popup(QCursor.pos())
 
 

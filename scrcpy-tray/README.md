@@ -14,7 +14,8 @@ mirror any connected Android device in a couple of clicks — no terminal needed
 - **Presets**, remembered across launches: fullscreen, no-audio, no-control,
   turn screen off, keep awake, power-off-on-close, max size, bitrate, max FPS,
   codec (h264/h265/av1) and record-to-folder.
-- **Wireless connect (TCP/IP)** and **Restart adb** actions.
+- **Wireless debugging window**: **pair** (Android 11+, with pairing code) and
+  **connect** over TCP/IP, plus a **Restart adb** action.
 - **Mirroring state** per device with a **Stop** action.
 - **Desktop notifications** on connect/disconnect and launch failures.
 - **Start on login** toggle (freedesktop autostart).

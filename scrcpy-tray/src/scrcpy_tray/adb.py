@@ -84,40 +84,65 @@ class AdbClient(QObject):
     def _run(self, args: list[str], on_done=None) -> None:
         if not self._adb:
             self.error.emit("adb not found")
+            if on_done is not None:
+                on_done(-1, "", "adb not found")
             return
         proc = QProcess(self)
         proc.setProcessEnvironment(self._env)
         self._task_procs.append(proc)
+        state = {"done": False}
 
-        def finished(code, _status, p=proc):
-            out = bytes(p.readAllStandardOutput().data()).decode(errors="replace").strip()
-            err = bytes(p.readAllStandardError().data()).decode(errors="replace").strip()
-            if p in self._task_procs:
-                self._task_procs.remove(p)
-            p.deleteLater()
+        def complete(exit_code):
+            if state["done"]:
+                return  # both finished() and errorOccurred() can fire; run once
+            state["done"] = True
+            out = bytes(proc.readAllStandardOutput().data()).decode(errors="replace").strip()
+            err = bytes(proc.readAllStandardError().data()).decode(errors="replace").strip()
+            if proc in self._task_procs:
+                self._task_procs.remove(proc)
+            proc.deleteLater()
             if on_done is not None:
-                on_done(code, out, err)
+                on_done(exit_code, out, err)
 
-        def errored(_e, p=proc):
-            if p in self._task_procs:
-                self._task_procs.remove(p)
-            msg = p.errorString()
-            p.deleteLater()
-            self.error.emit(f"adb error: {msg}")
+        def errored(_e):
+            # Fire-and-forget callers get a global notification; callers that
+            # handle their own result (on_done) surface the failure themselves.
+            if on_done is None and not state["done"]:
+                self.error.emit(f"adb error: {proc.errorString()}")
+            complete(-1)
 
-        proc.finished.connect(finished)
+        proc.finished.connect(lambda code, _status: complete(code))
         proc.errorOccurred.connect(errored)
         proc.start(self._adb, args)
 
     def start_server(self, on_done=None) -> None:
         self._run(["start-server"], lambda _c, _o, _e: on_done() if on_done else None)
 
-    def connect_wireless(self, address: str) -> None:
+    def connect_wireless(self, address: str, on_done=None) -> None:
         def done(_code, out, err):
-            self.message.emit(out or err or f"adb connect {address}")
+            text = (out or err or f"adb connect {address}").strip()
+            self.message.emit(text)
             self.list_devices()
+            if on_done is not None:
+                low = text.lower()
+                ok = "connected to" in low and not low.startswith(("failed", "cannot"))
+                on_done(ok, text)
 
         self._run(["connect", address], done)
+
+    def pair(self, address: str, code: str, on_done=None) -> None:
+        def done(exit_code, out, err):
+            text = (out or err).strip()
+            low = text.lower()
+            ok = "successfully paired" in low or (
+                exit_code == 0 and "failed" not in low and bool(text)
+            )
+            self.message.emit(text or ("Paired" if ok else "Pairing failed"))
+            self.list_devices()
+            if on_done is not None:
+                on_done(ok, text or ("Paired" if ok else "Pairing failed"))
+
+        self._run(["pair", address, code], done)
 
     def restart(self) -> None:
         def after_kill(_c, _o, _e):
